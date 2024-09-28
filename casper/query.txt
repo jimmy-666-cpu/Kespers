@@ -1,0 +1,1 @@
+query_id=AAGNVVYtAgAAAI1VVi2jYl1F&user=%7B%22id%22%3A5055600013%2C%22first_name%22%3A%22marga%22%2C%22last_name%22%3A%22%7CHCA%22%2C%22username%22%3A%22bonet29%22%2C%22language_code%22%3A%22id%22%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1727455317&hash=51d7c60738539900da27d4f2f9cea4edda2d1107fbdfc0ca1383972a25f4c04e
