@@ -3,19 +3,33 @@ import time
 import datetime
 from colorama import init, Fore, Style
 
-# Initialize colorama for colored terminal output
 init(autoreset=True)
 
-# File to load tokens
 data_file = "query.txt"
 
-# Function to load tokens from a file
 def load_tokens(file_path):
     with open(file_path, 'r') as file:
         tokens = file.read().splitlines()
     return tokens
 
-# Function to get headers with an optional token
+def print_welcome_banner():
+    banner = """
+   ▄   ██▄      ▄▄▄▄▄       ▄████  ▄█     ▄   ▄███▄   
+    █  █  █    █     ▀▄     █▀   ▀ ██      █  █▀   ▀  
+██   █ █   █ ▄  ▀▀▀▀▄       █▀▀    ██ █     █ ██▄▄    
+█ █  █ █  █   ▀▄▄▄▄▀        █      ▐█  █    █ █▄   ▄▀ 
+█  █ █ ███▀                  █      ▐   █  █  ▀███▀   
+█   ██                        ▀          █▐           
+                                         ▐            
+    """
+    print(Fore.BLUE + Style.BRIGHT + banner)
+    banner2 = "BOT AUTO CLEAR TASK CASPER"
+    print(Fore.YELLOW + Style.BRIGHT + banner2)
+    banner3 = "Support surya"
+    print(Fore.YELLOW + Style.BRIGHT + banner3)
+    banner4 = "0x0FbFC8dBB6e238dFdA2ee70ecee3AC9855777451"
+    print(Fore.RED + Style.BRIGHT + banner4)
+
 def get_headers(token=None):
     headers = {
         "Accept": "application/json",
@@ -35,7 +49,6 @@ def get_headers(token=None):
     }
     return headers
 
-# Function to login and get user data
 def login(token):
     url = "https://api.cspr.community/api/users/me"
     headers = get_headers(token)
@@ -50,7 +63,6 @@ def login(token):
 
             print(Fore.YELLOW + Style.BRIGHT + f"Account: [ {user_name} ]")
 
-            # Fetch leaderboard data after login
             fetch_leaderboard(token)
 
             return user_data
@@ -67,24 +79,20 @@ def fetch_leaderboard(token):
         "leaderboard_limit": 3
     }
 
-    # Make the request
     response = requests.get(url, headers=headers, params=params)
 
-    # Check if request was successful
     if response.status_code == 200:
         try:
             result = response.json()
 
-            # Extract user rank details
             user_rank = result.get("ranking", {}).get("user_rank", {})
 
-            # Log user points and position
             user_points = user_rank.get("points", 0)
             user_position = user_rank.get("position", "N/A")
 
             if user_points and user_position:
+                print(Fore.GREEN + f"Point: [ {user_points} ]")
                 print(Fore.GREEN + f"Rank:  [ {user_position} ]")
-                print(Fore.GREEN + f"Points: [ {user_points} ]")
             else:
                 print(Fore.RED + "User rank information is missing or incomplete.")
 
@@ -103,38 +111,35 @@ def list_task(token):
             result = response.json()
             tasks = result.get('tasks', {})
             
-            # Iterate over different task categories
             for category, task_list in tasks.items():
                 print(Fore.CYAN + f"\nCategory: {category.capitalize()} Tasks")
                 
-                # Loop through the tasks in each category
                 for task in task_list:
                     task_name = task.get('task_name', 'Unknown Task')
                     task_type = task.get('type', 'Unknown Type')
                     description = task.get('description', 'No description available')
                     priority = task.get('priority', 'No priority info')
                     rewards = task.get('rewards', [])
-                    
-                    # Extract reward information if available
+                    seconds_to_allow_claim = task.get('seconds_to_allow_claim', 0)
+
                     reward_info = ', '.join([f"{reward['unit']}: {reward['value']}" for reward in rewards]) if rewards else 'No rewards'
 
-#                    print(Fore.GREEN + f"Task: {task_name}, Type: {task_type}, Priority: {priority}")
- #                   print(Fore.BLUE + f"Rewards: {reward_info}\n")
+#                    print(Fore.GREEN + f"Task: {task_name}, Type: {task_type}, Priority: {priority}, Allow Claim After: {seconds_to_allow_claim} seconds")
+#                    print(Fore.BLUE + f"Rewards: {reward_info}\n")
 
         except Exception as e:
             print(Fore.RED + f"Error parsing tasks data: {e}")
     else:
         print(Fore.RED + f"Failed to retrieve tasks, status code: {response.status_code}")
 
-# Function to click a task (action = 0)
 def klik_task(token, task_name):
     url = "https://api.cspr.community/api/users/me/tasks"
     headers = get_headers(token)
     payload = {
         "task_name": task_name,
-        "action": 0,  # Action 0 to simulate the click
+        "action": 0,
         "data": {
-            "date": datetime.datetime.utcnow().isoformat() + "Z"  # ISO 8601 date
+            "date": datetime.datetime.utcnow().isoformat() + "Z"
         }
     }
 
@@ -148,15 +153,14 @@ def klik_task(token, task_name):
         print(Fore.RED + f"Response content: {response.content}")
         return False
 
-# Function to claim and clear a task (action = 1)
 def clear_task(token, task_name):
     url = "https://api.cspr.community/api/users/me/tasks"
     headers = get_headers(token)
     payload = {
         "task_name": task_name,
-        "action": 1,  # Action for clearing the task
+        "action": 1,
         "data": {
-            "date": datetime.datetime.utcnow().isoformat() + "Z"  # ISO 8601 date
+            "date": datetime.datetime.utcnow().isoformat() + "Z"
         }
     }
 
@@ -168,9 +172,7 @@ def clear_task(token, task_name):
         print(Fore.RED + f"Failed to clear task: {task_name}, status code: {response.status_code}")
         print(Fore.RED + f"Response content: {response.content}")
 
-# Example function to automate clicking, claiming, and clearing tasks with a 10-second delay
 def auto_clear_tasks(token):
-    # Step 1: Get all tasks
     url = "https://api.cspr.community/api/users/me/tasks"
     headers = get_headers(token)
     response = requests.get(url, headers=headers)
@@ -180,15 +182,18 @@ def auto_clear_tasks(token):
             result = response.json()
             tasks = result.get('tasks', {})
 
-            # Step 2: Loop through each task category
             for category, task_list in tasks.items():
                 for task in task_list:
                     task_name = task.get('task_name')
+                    seconds_to_allow_claim = task.get('seconds_to_allow_claim', 0)  # Get seconds_to_allow_claim
 
-                    # Step 3: Click the task (action 0) before attempting to clear
                     if klik_task(token, task_name):
-                        # Wait for 10 seconds before clearing the task
-                        time.sleep(10)
+#                        print(Fore.CYAN + f"Waiting for {seconds_to_allow_claim} seconds before clearing task: {task_name}...")
+                        for remaining in range(seconds_to_allow_claim, 0, -1):
+                            print(Fore.YELLOW + f"Time remaining: {remaining} seconds", end='\r')  # Print remaining time
+                            time.sleep(1)  # Sleep for 1 second
+
+                        print()  # Move to the next line after countdown
                         clear_task(token, task_name)
 
         except Exception as e:
@@ -197,18 +202,19 @@ def auto_clear_tasks(token):
         print(Fore.RED + f"Failed to retrieve tasks, status code: {response.status_code}")
 
 if __name__ == "__main__":
+    print_welcome_banner()
+
     tokens = load_tokens(data_file)
 
     for token in tokens:
-        print(Fore.CYAN + "Logging in with token:")
+        print(Fore.CYAN + "Berhasil login:")
         user_data = login(token)
         
         if user_data:
-            print(Fore.CYAN + "Listing tasks for user:")
+            print(Fore.CYAN + "List Task:")
             list_task(token)
 
-            # Automatically click, claim, and clear tasks with a 10-second delay between each action
-            print(Fore.CYAN + "Auto-clearing tasks:")
+            print(Fore.CYAN + "Claim Task tasks:")
             auto_clear_tasks(token)
 
         time.sleep(2)  # Pause between requests to avoid overloading the server
